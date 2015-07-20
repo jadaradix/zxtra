@@ -1,69 +1,69 @@
-var async = require("async");
+var yans = require("yans");
 var lodash = require("lodash");
-var transformer = require("./transformer.js");
-var phidgets = require("./phidgets.js");
+var send = require("./send.js");
 
-function sendString(string, delay, callback) {
 
-  var waterfallFunctions = [];
+var server = new yans({
+  "port": 1024,
+  "directory": __dirname,
+  "viewPath": "build",
+  "logging": true,
+  "loggingFormat": ":method :url -> HTTP :status; :response-time ms",
+  "staticDirectories": []
+});
 
-  //Push open function
-  waterfallFunctions.push(
-    function (next) {
-      phidgets.open(next);
-    }
-  );
 
-  //Push clear pins function
-  waterfallFunctions.push(
-    function (next) {
-      phidgets.setPin([0, 1, 2, 3], false, next);
-    }
-  );
-
-  //Push pins functions
-  var pins = transformer.stringToPins(string);
-  pinWaterfallFunctions = [];
-  var pinWaterfallFunctions = lodash.map(pins, function (pin) {
-    return function (next) {
-      async.waterfall([
-        function (next2) {
-          console.log(pin.toString());
-          phidgets.setPin(pin, true, next2);
-        },
-        function (next2) {
-          setTimeout(next2, delay);
-        },
-        function (next2) {
-          phidgets.setPin([0, 1, 2, 3], false, next2);
-        },
-        function (next2) {
-          setTimeout(next2, delay);
-        },
-      ], next);
-    };
-  });
-
-  waterfallFunctions = waterfallFunctions.concat(pinWaterfallFunctions);
-
-  //Push close function
-  waterfallFunctions.push(
-    function (next) {
-      phidgets.close(next);
-    }
-  );
-
-  //Run, baby
-  async.waterfall(waterfallFunctions, callback);
-
-}
-
-var string = "Hello World!";
-var delay = 350;
-sendString(string, delay, function (error) {
-  if (error) {
-    console.log("I couldn't send the string ('" + error + "').");
-    return process.exit(0);
+server.start(function(err, port) {
+  if (!err) {
+    console.log("-> Server started! (port " + port.toString() + ")");
+  } else {
+    console.error("-> Server failed to start (" + err.toString() + ")");
+    return process.exit(1);
   }
-  console.log("I sent the string!");
+});
+
+
+var delay = 200;
+server.app.get("/send/*", function(req, res) {
+  send.sendString(req.params[0], delay, function (error) {
+    if (error) {
+      return res.send("I couldn't send the string ('" + error + "').");
+    } else {
+      res.send("I sent the string!");
+    }
+  });
+});
+
+server.app.get("/sendtweets", function(req, res) {
+  var tweets = [
+    {
+      "handle": "jadaradix",
+      "text": "A tweet (1)."
+    },
+    {
+      "handle": "ajcrsx",
+      "text": "A tweet (2)."
+    }
+  ];
+  var text = lodash.map(tweets, function (tweet) {
+    return tweet.handle + ": " + tweet.text;
+  }).join("\n\n");
+  send.sendString(text, delay, function (error) {
+    if (error) {
+      return res.send("I couldn't send the string ('" + error + "').");
+    } else {
+      res.send("I sent the string!");
+    }
+  });
+});
+
+server.app.get("/sendgfx", function(req, res) {
+  var bytes = [143, 128, 143, 128, 143, 128];
+  send.sendBytes(bytes, delay, function (error) {
+    if (error) {
+      return res.send("I couldn't send the bytes ('" + error + "').");
+    } else {
+      res.send("I sent the bytes!");
+    }
+  });
 });

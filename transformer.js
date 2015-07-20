@@ -8,12 +8,11 @@ exports.stringPad = function (thing) {
 }
 
 
-exports.stringToPinSets = function (string) {
+exports.bytesToPinSets = function (bytes) {
   var pinSets = [];
   var i;
-  for (i = 0; i < string.length; i++) {
-    var charCode = string.charCodeAt(i);
-    var binaryCode = charCode.toString(2);
+  for (i = 0; i < bytes.length; i++) {
+    var binaryCode = bytes[i].toString(2);
     binaryCode = lodash.padLeft(binaryCode, 8, "0");
     var pins = [];
     var id;
@@ -24,8 +23,7 @@ exports.stringToPinSets = function (string) {
     pinSets.push(pins);
     var consoleOutput = "";
     consoleOutput += this.stringPad(i);
-    consoleOutput += this.stringPad(string[i]);
-    consoleOutput += this.stringPad(charCode.toString());
+    consoleOutput += this.stringPad(bytes[i]);
     consoleOutput += this.stringPad(binaryCode.toString());
     consoleOutput += pins.toString();
     console.log(consoleOutput);
@@ -34,6 +32,6 @@ exports.stringToPinSets = function (string) {
 }
 
 
-exports.stringToPins = function (string) {
-  return lodash.flatten(this.stringToPinSets(string));
+exports.bytesToPins = function (bytes) {
+  return lodash.flatten(this.bytesToPinSets(bytes));
 }
