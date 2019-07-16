@@ -1,6 +1,6 @@
-var phidgets = require("phidgets");
-var sprintf = require("sprintf-js").sprintf;
-var pik = new phidgets.PhidgetInterfaceKit();
+const phidgets = require("phidgets");
+const { sprintf } = require("sprintf-js")
+const pik = new phidgets.PhidgetInterfaceKit();
 
 var exports = module.exports = {};
 

@@ -1,5 +1,4 @@
 var yans = require("yans");
-var lodash = require("lodash");
 var send = require("./send.js");
 
 
@@ -45,7 +44,7 @@ server.app.get("/sendtweets", function(req, res) {
       "text": "A tweet (2)."
     }
   ];
-  var text = lodash.map(tweets, function (tweet) {
+  var text = tweets.map(tweet => {
     return tweet.handle + ": " + tweet.text;
   }).join("\n\n");
   send.sendString(text, delay, function (error) {
